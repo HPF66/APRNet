@@ -1,0 +1,29 @@
+{
+  "format": "mixed_APR_joint_splits_v1",
+  "workbook": "C:\\Users\\25025\\Desktop\\连接文件\\amyloid\\reports\\mixed_apr_database_cpad_full_v1\\apr_mixed_unified_v1.xlsx",
+  "sequence_count": 3031,
+  "all_samples_jointly_evaluated": true,
+  "splits": [
+    "random10",
+    "homology10"
+  ],
+  "homology": {
+    "alignment_backend": "parasail_nw_trace_scan_16",
+    "long_sequence_policy": "global identity>=0.3, reciprocal coverage>=0.8",
+    "short_sequence_policy": "length>=8, global identity>=0.8, reciprocal coverage>=0.8",
+    "exact_sequence_source_records_grouped": true,
+    "mapped_parent_accessions_grouped": true,
+    "exact_short_in_long_containment_grouped": true,
+    "minimum_short_in_long_containment_length": 8,
+    "exact_sequence_group_edges": 6,
+    "parent_group_edges": 1633,
+    "containment_edges": 53,
+    "long_alignment_candidates": 63514,
+    "long_homology_edges": 61,
+    "short_alignment_candidates": 373,
+    "short_homology_edges": 13,
+    "short_high_frequency_4mer_buckets_skipped": 0,
+    "largest_group_size": 255,
+    "multi_member_group_count": 202
+  }
+}

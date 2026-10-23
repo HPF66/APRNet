@@ -1,0 +1,1 @@
+"""APRnet encoder feature."""

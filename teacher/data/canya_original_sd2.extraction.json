@@ -1,0 +1,15 @@
+{
+  "source": "/home/qfchen/amyloid/canya_dataset/data/adt5111_data_files_s1_to_s7.xlsx",
+  "source_sha256": "019ed050abc48283697d26c95a54edcee1e998f8ceceeb1ec7c3e20913b9e42c",
+  "output": "/home/qfchen/amyloid/canya_dataset/official_split/adt5111_SD2_official_split.tsv",
+  "output_sha256": "61a4e1b36953adb30d2dd68f564cbf285f1ac9bf01dd9c0ab95a09fef2712d0f",
+  "rows": 111692,
+  "by_dataset_split": {
+    "NNK1|test": 3470,
+    "NNK1|train": 31911,
+    "NNK2|test": 3676,
+    "NNK2|train": 33821,
+    "NNK3|test": 3810,
+    "NNK3|train": 35004
+  }
+}

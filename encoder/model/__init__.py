@@ -1,1 +1,0 @@
-"""APRnet encoder model."""

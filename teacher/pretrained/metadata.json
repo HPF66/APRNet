@@ -1,5 +1,7 @@
 {
   "file": "teacher_canya_cpad.pt",
+  "release": "v1.0.0",
+  "download_url": "https://github.com/HPF66/APRNet/releases/download/v1.0.0/teacher_canya_cpad.pt",
   "sha256": "7b059283e57e54dcff3e48ad1e339deb7251aedc55b977d0bd79a489aa35b327",
   "lineage": "CAnYA shared-supervised pretraining -> CPAD fine-tuning",
   "bytes": 36065562

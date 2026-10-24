@@ -1,0 +1,3 @@
+pdb_id	sample_id	existing_label	source_label	source	record_id	name	tier	reference	url
+6gx5	AS_P0546	0	1	amyloid_atlas	6gx5	Tau 3R	curated_direct_fibril_structure	https://doi.org/10.1038/s41586-018-0454-y	https://people.mbi.ucla.edu/sawaya/amyloidatlas/
+6gx5	AS_P0546	0	1	crossbeta_db	DB00031	Microtubule-associated protein tau	curated_amyloid_region_parent	https://doi.org/10.1038/s41586-018-0454-y	https://bioinfo.crbm.cnrs.fr/crossBetaDb-home

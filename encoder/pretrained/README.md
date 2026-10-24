@@ -1,6 +1,6 @@
 # Supplied retained encoder
 
-**Input checks are now enforced. The two bundled weights are not a verified end-to-end pretrained pair for new sequences.**
+**Input checks are now enforced. The bundled encoder and separately distributed teacher are not a verified end-to-end pretrained pair for new sequences.**
 
 `encoder_epoch20.pt` is the exact existing retained Boundary-Aware Context V3 export. Its identity is recorded in `metadata.json`; it is not refitted during this source reorganization.
 
@@ -10,7 +10,7 @@ The existing retained encoder's export/refit records refer to the historical `pe
 
 These are distinct original artifacts. Copying the canonical teacher into `teacher/pretrained` does not retroactively change how the historical encoder was fitted. Use the retained encoder with its compatible teacher inputs, or explicitly fit a new canonical encoder with the supplied canonical teacher. Historical weights, cached features and reported experimental results are not rewritten by this package. This note preserves the source records rather than silently asserting that the two hashes are interchangeable.
 
-`extract_hapr` now verifies teacher SHA-256 and the feature policy before inference. The identified retained encoder accepts its historical cache inputs; it rejects the bundled-teacher/masked-v2 combination. Old absolute paths are provenance and are not required installation paths.
+`extract_hapr` now verifies teacher SHA-256 and the feature policy before inference. The identified retained encoder accepts its historical cache inputs; it rejects the Release-teacher/masked-v2 combination. Old absolute paths are provenance and are not required installation paths.
 
 New window extraction corrects a padded-output mean and records `local_probability_policy=residue_mask_mean_v2`. It does not change CNN input padding. This changes one input feature definition, so new caches must be used with an encoder fitted on that definition. New full-data/CV exports record their own `input_contract`.
 

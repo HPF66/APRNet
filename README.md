@@ -7,7 +7,7 @@ This release has three stages. The protein stage contains **one architecture onl
 ```text
 APRnet/
 ├── teacher/                 # CAnYA pretraining → CPAD fine-tuning
-│   └── pretrained/teacher_canya_cpad.pt
+│   └── pretrained/teacher_canya_cpad.pt   # Download from GitHub Releases
 ├── encoder/                 # Window evidence → residue-level APR representation
 │   └── pretrained/encoder_epoch20.pt
 ├── protein/                 # ESM-2 650M + HAPR + PDB → protein probability
@@ -27,11 +27,11 @@ Each stage uses the same PHCNet-inspired categories:
 | `feature/` | Feature loading code or fixed descriptor definitions |
 | `data/` | Source workbooks and source tables; generated partitions stay external |
 | `result/` | Output location for explicitly requested runs |
-| `pretrained/` | Supplied weights for teacher and encoder only |
+| `pretrained/` | Bundled encoder checkpoint; teacher download instructions and metadata |
 
 ## Installation
 
-The 2026-10-20 fixes are listed in [CHANGELOG.md](CHANGELOG.md). See [the enforced teacher/encoder compatibility note](encoder/pretrained/README.md) before using the supplied weights together. The two unchanged weights are not asserted to be a matched pretrained pipeline.
+The 2026-10-20 fixes are listed in [CHANGELOG.md](CHANGELOG.md). See [the enforced teacher/encoder compatibility note](encoder/pretrained/README.md) before using the checkpoints together. The two unchanged weights are not asserted to be a matched pretrained pipeline.
 
 Use Linux with Python 3.10/3.11 and a CUDA-compatible PyTorch installation. Then run `python -m pip install -r requirements.txt`. The original Linux file-lock and numerical conventions are retained. Run all commands from this repository root using `python -m ...`.
 
@@ -60,13 +60,49 @@ Run the regression checks without training:
 python -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
+## Pretrained checkpoints
+
+The encoder checkpoint is included at `encoder/pretrained/encoder_epoch20.pt`.
+The teacher checkpoint is distributed separately as a
+[v1.0.0 Release asset](https://github.com/HPF66/APRNet/releases/tag/v1.0.0).
+Download [`teacher_canya_cpad.pt`](https://github.com/HPF66/APRNet/releases/download/v1.0.0/teacher_canya_cpad.pt)
+and save it as `teacher/pretrained/teacher_canya_cpad.pt`.
+Cloning the repository or downloading its source ZIP does not include this asset.
+
+From the repository root on Linux:
+
+```bash
+curl --fail --location --output teacher/pretrained/teacher_canya_cpad.pt \
+  https://github.com/HPF66/APRNet/releases/download/v1.0.0/teacher_canya_cpad.pt
+sha256sum teacher/pretrained/teacher_canya_cpad.pt
+```
+
+Or download it from PowerShell:
+
+```powershell
+Invoke-WebRequest -Uri "https://github.com/HPF66/APRNet/releases/download/v1.0.0/teacher_canya_cpad.pt" -OutFile "teacher/pretrained/teacher_canya_cpad.pt"
+(Get-FileHash "teacher/pretrained/teacher_canya_cpad.pt" -Algorithm SHA256).Hash.ToLower()
+```
+
+The expected teacher SHA-256 is:
+
+```text
+7b059283e57e54dcff3e48ad1e339deb7251aedc55b977d0bd79a489aa35b327
+```
+
+The exact file size is 36,065,562 bytes. See
+[`teacher/pretrained/metadata.json`](teacher/pretrained/metadata.json) for its
+identity and [`encoder/pretrained/README.md`](encoder/pretrained/README.md) for
+the teacher/encoder input compatibility requirements. Downloading the teacher
+does not change those requirements.
+
 ## Entry points
 
 - [Teacher: training and peptide inference](teacher/README.md)
 - [Encoder: training and residue extraction](encoder/README.md)
 - [Protein: 650M + HAPR + PDB](protein/README.md)
 
-These are the retained implementations reorganized into packages. State-dict parameter names and the retained forward operations are preserved. Existing datasets, partitions, labels and experimental results are not modified by this release. The two supplied pretrained artifacts are copied unchanged; their exact identities and original artifact distinction are documented beside the files.
+These are the retained implementations reorganized into packages. State-dict parameter names and the retained forward operations are preserved. Existing datasets, partitions, labels and experimental results are not modified by this release. The bundled encoder checkpoint and separately distributed teacher checkpoint are unchanged; their exact identities and original artifact distinction are documented in their respective `pretrained/` directories.
 
 ## Source data and partitions
 
@@ -85,4 +121,4 @@ Generated HAPR arrays, pAPR/rAPR arrays, ESM-2 residue embeddings, structure cac
 
 ESM backbone weights are separate model assets, not residue embeddings: teacher inference requires the original ESM-2 8M assets, and protein feature extraction uses ESM-2 650M. The 650M backbone is not bundled. Protein classifier weights are supplied explicitly through `--checkpoint`; no arbitrarily selected fold checkpoint is presented as a universal pretrained classifier.
 
-The root `.gitignore` excludes generated arrays and caches while allowing the two supplied teacher/encoder `.pt` files. A distribution license has not been assigned by the authors. No GitHub publication is performed by this reorganization.
+The root `.gitignore` excludes generated arrays, caches and the teacher checkpoint while allowing the bundled encoder `.pt` file. Keep the downloaded teacher checkpoint locally at the documented path. A distribution license has not been assigned by the authors.

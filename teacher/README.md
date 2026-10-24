@@ -1,6 +1,8 @@
 # Peptide teacher
 
-**Training:** CAnYA shared-supervised pretraining → CPAD peptide fine-tuning → full-data teacher. The supplied final checkpoint is `pretrained/teacher_canya_cpad.pt` (36 final epochs, 2,031 recorded peptide examples). It contains the saved arguments and complete teacher model state.
+**Training:** CAnYA shared-supervised pretraining -> CPAD peptide fine-tuning -> full-data teacher. The final checkpoint (36 final epochs, 2,031 recorded peptide examples) is distributed as the [v1.0.0 Release asset](https://github.com/HPF66/APRNet/releases/download/v1.0.0/teacher_canya_cpad.pt), not as a normal Git blob. It contains the saved arguments and complete teacher model state.
+
+Download it and place it at `teacher/pretrained/teacher_canya_cpad.pt` before peptide inference or generating teacher window inputs. Verify the SHA-256 against [`pretrained/metadata.json`](pretrained/metadata.json). For encoder inference, also follow the [teacher/encoder input compatibility requirements](../encoder/pretrained/README.md); downloading this teacher does not make historical encoder inputs interchangeable.
 
 | File | Responsibility |
 | --- | --- |

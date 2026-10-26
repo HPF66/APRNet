@@ -76,6 +76,14 @@ def build(task):
     return dict(sample_id=sample_id,file=output.name,sequence_ids=sids,chains=diagnostics,
                 nodes=len(node_pos),edges=value['edge_index'].shape[1],structure_sha256=sha(path))
 
+
+def initialize_worker(data, cache, structure_roots):
+    """Pass runtime paths explicitly, including with spawn/forkserver workers."""
+    global DATA, CACHE, STRUCTURE_ROOTS
+    DATA, CACHE = Path(data), Path(cache)
+    STRUCTURE_ROOTS = tuple(map(Path, structure_roots))
+
+
 def main(workers=8):
     CACHE.mkdir(parents=True,exist_ok=True)
     protected={str(DATA/name):sha(DATA/name) for name in ('labels.tsv','chains.tsv','sequences.tsv','provenance.tsv')}
@@ -84,7 +92,8 @@ def main(workers=8):
     for row in table(DATA/'chains.tsv'):chains[row['sample_id']].append(row)
     tasks=[(r,chains[r['sample_id']],sequences) for r in table(DATA/'labels.tsv')]
     records=[];start=time.time()
-    with ProcessPoolExecutor(max_workers=workers) as pool:
+    with ProcessPoolExecutor(max_workers=workers, initializer=initialize_worker,
+                             initargs=(DATA, CACHE, STRUCTURE_ROOTS)) as pool:
         for record in pool.map(build,tasks,chunksize=4):
             records.append(record)
             if len(records)%100==0:print(json.dumps({'completed':len(records),'total':len(tasks)}),flush=True)

@@ -2,6 +2,7 @@
 import argparse
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -186,17 +187,35 @@ def contact_graph(xyz, positions, instances, chain_ids, groups, cutoff=10., neig
     return edges, attrs
 
 
+def graph_input_digest(sample, rows, sequences):
+    """Identify chain alignment and assembly inputs without using class labels."""
+    inputs = {
+        'sample': {key: sample.get(key) for key in
+                   ('sample_id', 'sequence_ids', 'target_chain_ids', 'assembly_mode', 'selected_model')},
+        'chains': [
+            {**{key: row[key] for key in ('chain_id', 'sequence_id', 'coordinate_residue_keys',
+                                         'coordinate_seqres_positions', 'coordinate_sequence')},
+             'sequence': sequences[row['sequence_id']]}
+            for row in rows
+        ],
+    }
+    return hashlib.sha256(json.dumps(inputs, sort_keys=True).encode('utf-8')).hexdigest()
+
+
 def build(task):
     sample, rows, sequences = task
     sample_id = sample['sample_id']
     output = GRAPH / f'{sample_id}.npz'
     metadata = GRAPH / f'{sample_id}.json'
     path = resolve_structure(sample, SOURCE, STRUCTURE_ROOTS)
+    input_digest = graph_input_digest(sample, rows, sequences)
     if output.exists() and metadata.exists():
         record = json.loads(metadata.read_text())
         if record['structure_sha256'] != sha(path):
             raise ValueError(f'Structure changed for {sample_id}; choose a fresh graph output directory')
-        if record.get('annotation_policy') == 'dssp_or_sasa_v2' and record.get('dssp_program') == dssp_program():
+        if (record.get('graph_input_sha256') == input_digest
+                and record.get('annotation_policy') == 'dssp_or_sasa_v2'
+                and record.get('dssp_program') == dssp_program()):
             return record
     parser = PDBParser(QUIET=True) if path.suffix.lower() == '.pdb' else FastMMCIFParser(QUIET=True)
     model = next(parser.get_structure(sample_id, str(path)).get_models())
@@ -244,9 +263,17 @@ def build(task):
                   verified_interchain_edges=int(edge[:, 18].sum()),
                   assembly_status=assembly_status, verified_chain_groups=[sorted(g) for g in groups],
                   dssp_error=dssp_error, dssp_program=dssp_program(), annotation_policy='dssp_or_sasa_v2',
-                  sasa_error=sasa_error, structure_sha256=sha(path))
+                  sasa_error=sasa_error, structure_sha256=sha(path), graph_input_sha256=input_digest)
     atomic(metadata, record)
     return record
+
+
+def initialize_worker(source, old_graph, graph, structure_roots, dssp_executable):
+    """Initialize runtime options instead of relying on inherited globals."""
+    global SOURCE, OLD_GRAPH, GRAPH, STRUCTURE_ROOTS, DSSP_EXECUTABLE
+    SOURCE, OLD_GRAPH, GRAPH = Path(source), Path(old_graph), Path(graph)
+    STRUCTURE_ROOTS = tuple(map(Path, structure_roots))
+    DSSP_EXECUTABLE = dssp_executable
 
 
 def main(workers):
@@ -255,6 +282,10 @@ def main(workers):
     protected = {str(SOURCE / name): sha(SOURCE / name) for name in ('labels.tsv', 'chains.tsv', 'sequences.tsv', 'provenance.tsv')}
     old_manifest = json.loads((OLD_GRAPH / 'manifest.json').read_text())
     assert old_manifest['validation'] == 'passed'
+    old_inputs = {Path(path.replace('\\', '/')).name: digest
+                  for path, digest in old_manifest.get('protected_input_sha256', {}).items()}
+    if any(old_inputs.get(Path(path).name) != digest for path, digest in protected.items()):
+        raise ValueError('Backbone graphs do not match the current source tables; rebuild the backbone stage first')
     sequences = {r['sequence_id']: r['sequence'] for r in table(SOURCE / 'sequences.tsv')}
     chains = defaultdict(list)
     for row in table(SOURCE / 'chains.tsv'):
@@ -264,7 +295,8 @@ def main(workers):
     records = []
     errors = []
     started = time.time()
-    with ProcessPoolExecutor(max_workers=workers) as pool:
+    with ProcessPoolExecutor(max_workers=workers, initializer=initialize_worker,
+                             initargs=(SOURCE, OLD_GRAPH, GRAPH, STRUCTURE_ROOTS, DSSP_EXECUTABLE)) as pool:
         futures = {pool.submit(build, task): task[0]['sample_id'] for task in tasks}
         for future in as_completed(futures):
             try:

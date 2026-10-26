@@ -153,6 +153,7 @@ def main() -> None:
         "format": "unique_sequence_frozen_hapr_v1",
         "checkpoint": str(args.checkpoint),
         "checkpoint_sha256": hashlib.sha256(args.checkpoint.read_bytes()).hexdigest(),
+        "boundary_difference_policy": boundary_v3.BOUNDARY_DIFFERENCE_POLICY,
         "source_workbook": str(args.workbook),
         "input_contract": input_contract,
         "sequence_count": len(manifest_records),

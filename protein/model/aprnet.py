@@ -43,6 +43,8 @@ class PDBResidueClassifier(ResidueContextBackbone):
     def structural_chain_readout(self, h, mask, graph, papr, rapr):
         """Read physical chain instances before pooling copies of one sequence."""
         base_chain = self.pool_chain(h, mask, papr, rapr)
+        if graph['instance_to_chain'].numel() == 0 or graph['positions'].numel() == 0:
+            return base_chain
         original = h[graph['chain_index'], graph['positions']]
         geo = self.geometry_input(original) + self.geometry_node(graph['node'])
         for block in self.geometry_blocks:

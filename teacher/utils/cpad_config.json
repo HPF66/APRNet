@@ -1,7 +1,7 @@
 {
   "data_root": "teacher/data",
   "output_root": "teacher/result/cpad_cv",
-  "split_manifest": "external_data/teacher_splits/cpad_random10/fold_manifest.json",
+  "split_manifest": "teacher/data/splits/fold_manifest.json",
   "folds": 10,
   "seed": 2026,
   "task": "peptide",

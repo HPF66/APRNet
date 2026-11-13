@@ -1,8 +1,6 @@
 # Peptide teacher
 
-**Training:** CAnYA shared-supervised pretraining -> CPAD peptide fine-tuning -> full-data teacher. The final checkpoint (36 final epochs, 2,031 recorded peptide examples) is distributed as the [v1.0.0 Release asset](https://github.com/HPF66/APRNet/releases/download/v1.0.0/teacher_canya_cpad.pt), not as a normal Git blob. It contains the saved arguments and complete teacher model state.
-
-Download it and place it at `teacher/pretrained/teacher_canya_cpad.pt` before peptide inference or generating teacher window inputs. Verify the SHA-256 against [`pretrained/metadata.json`](pretrained/metadata.json). For encoder inference, also follow the [teacher/encoder input compatibility requirements](../encoder/pretrained/README.md); downloading this teacher does not make historical encoder inputs interchangeable.
+**Training:** CAnYA shared-supervised pretraining → CPAD peptide fine-tuning → full-data teacher. The supplied final checkpoint is `pretrained/teacher_canya_cpad.pt` (36 final epochs, 2,031 recorded peptide examples). It contains the saved arguments and complete teacher model state.
 
 | File | Responsibility |
 | --- | --- |
@@ -22,10 +20,11 @@ The retained recipe starts from an existing peptide initializer, not an undocume
 
 ```bash
 python -m teacher.train.pretrain --backbone /assets/esm2_t6_8M_UR50D \
-  --project-root teacher --input /data/teacher_splits/canya_random90_10.tsv \
+  --project-root teacher --input teacher/data/canya_random90_10.tsv \
   --checkpoint /assets/initial_peptide_transfer.pt \
   --compat-config teacher/utils/canya_initialization_config.json \
   --output-dir /runs/canya --official-split --evaluate-test \
+  --fixed-threshold 0.4336784780025482 \
   --epochs 3 --scheduler-epochs 15 --batch-size 256 \
   --head-lr 0.0005 --lora-lr 0.00005 --backbone-lr 0.00001 \
   --dataset-heads --dataset-head-lr 0.001 --dataset-head-hidden-size 256 \
@@ -35,24 +34,24 @@ python -m teacher.train.pretrain --backbone /assets/esm2_t6_8M_UR50D \
   --seed 2026 --patience 4 --device cuda
 ```
 
-`--official-split` reads the supplied train/test column. The recorded preparation is a random within-dataset 90/10 split, not homology isolation. The original fixed evaluation threshold is recorded in `utils/canya_training_record.json`.
+`--official-split` reads the supplied train/test column. The recorded preparation is a random within-dataset 90/10 split, not homology isolation. The example uses the fixed evaluation threshold recorded in `utils/canya_training_record.json`.
 
 ## 2. CPAD fine-tuning
 
-The source workbook is `teacher/data/aggregating_peptides_model_database.xlsx`; fold outputs are generated outside the repository. Relocate the saved configuration before training:
+The data directory contains `aggregating_peptides_model_database.xlsx`. The fold manifest refers to the original row order. Relocate the saved configuration before training:
 
 ```bash
 python -m teacher.utils.prepare_config --data-root teacher/data \
   --backbone /assets/esm2_t6_8M_UR50D \
   --canya-checkpoint /runs/canya/best_transfer.pt \
-  --split-manifest /data/teacher_splits/cpad_random10/fold_manifest.json \
+  --split-manifest teacher/data/splits/fold_manifest.json \
   --output-root /runs/cpad --output /runs/cpad_local.json
 python -m teacher.train.train --config /runs/cpad_local.json
-python -m teacher.train.train_full --cv-run /runs/completed_cpad_cv \
+python -m teacher.train.train_full --cv-run /runs/cpad \
   --output /runs/teacher_canya_cpad.pt --device cuda
 ```
 
-The full-data trainer uses the rounded median of the CV-selected epochs. It does not select epochs from downstream protein test results. Shared supporting architecture classes remain where the original factory/checkpoint requires them; they are not additional released downstream classifiers.
+The CV command writes `config.json` and `fold_results.csv` into `/runs/cpad`; `--cv-run` reads that same directory. The full-data trainer uses the rounded median of the CV-selected epochs, which was 36 for the supplied teacher, and fits all 2,031 CPAD records without validation or early stopping. Shared supporting architecture classes remain where the original factory/checkpoint requires them.
 
 ## 3. Peptide inference
 

@@ -9,6 +9,7 @@ from typing import Any
 
 import torch
 
+from teacher.utils.checkpoints import DEFAULT_TEACHER_CHECKPOINT
 from teacher.utils.runtime import build_inference_model as build_model
 
 
@@ -77,7 +78,7 @@ def main() -> None:
             "Run the trained Peptide classifier and its residue-level propensity head"
         )
     )
-    parser.add_argument("--checkpoint", type=Path, default=Path(__file__).resolve().parents[2] / "pretrained/teacher_canya_cpad.pt")
+    parser.add_argument("--checkpoint", type=Path, default=DEFAULT_TEACHER_CHECKPOINT)
     parser.add_argument(
         "--sequence",
         action="append",

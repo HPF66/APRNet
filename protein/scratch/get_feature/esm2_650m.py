@@ -80,15 +80,10 @@ def main():
     pending.sort(key=lambda r:(len(r['sequence']),r['sequence_id']))
     def infer(batch):
         nonlocal computed
-        try:
-            _,_,tokens=convert([(r['sequence_id'],r['sequence']) for r in batch]);tokens=tokens.to(device)
-            with torch.inference_mode():result=model(tokens,repr_layers=[layer],return_contacts=False)['representations'][layer]
-            outputs=[result[i,1:len(r['sequence'])+1].detach().to('cpu',dtype=torch.float32).contiguous() for i,r in enumerate(batch)]
-            del result,tokens
-        except torch.OutOfMemoryError:
-            torch.cuda.empty_cache()
-            if len(batch)==1:raise
-            middle=len(batch)//2;infer(batch[:middle]);infer(batch[middle:]);return
+        _,_,tokens=convert([(r['sequence_id'],r['sequence']) for r in batch]);tokens=tokens.to(device)
+        with torch.inference_mode():result=model(tokens,repr_layers=[layer],return_contacts=False)['representations'][layer]
+        outputs=[result[i,1:len(r['sequence'])+1].detach().to('cpu',dtype=torch.float32).contiguous() for i,r in enumerate(batch)]
+        del result,tokens
         for r,x in zip(batch,outputs):
             expected=(len(r['sequence']),dim)
             assert tuple(x.shape)==expected and torch.isfinite(x).all()

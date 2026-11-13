@@ -1,0 +1,124 @@
+{
+  "format": "mixed_APR_joint_split_v1",
+  "created_utc": "2026-09-20T08:29:11.197457+00:00",
+  "split": "random10",
+  "method": "seeded balanced assignment with exact-sequence source records kept in one fold",
+  "seed": 20260918,
+  "folds": 10,
+  "all_samples_jointly_evaluated": true,
+  "sequence_count": 3031,
+  "group_count": 3025,
+  "fold_summary": [
+    {
+      "fold": 0,
+      "sequence_count": 304,
+      "residue_count": 47472,
+      "positive_residue_count": 2241,
+      "negative_residue_count": 45231,
+      "apr_region_sequence_count": 34,
+      "negative_peptide_count": 112,
+      "positive_peptide_count": 91,
+      "random_negative_protein_count": 67
+    },
+    {
+      "fold": 1,
+      "sequence_count": 303,
+      "residue_count": 48155,
+      "positive_residue_count": 2278,
+      "negative_residue_count": 45877,
+      "apr_region_sequence_count": 33,
+      "negative_peptide_count": 111,
+      "positive_peptide_count": 92,
+      "random_negative_protein_count": 67
+    },
+    {
+      "fold": 2,
+      "sequence_count": 303,
+      "residue_count": 48154,
+      "positive_residue_count": 2279,
+      "negative_residue_count": 45875,
+      "apr_region_sequence_count": 33,
+      "negative_peptide_count": 111,
+      "positive_peptide_count": 92,
+      "random_negative_protein_count": 67
+    },
+    {
+      "fold": 3,
+      "sequence_count": 303,
+      "residue_count": 47614,
+      "positive_residue_count": 2284,
+      "negative_residue_count": 45330,
+      "apr_region_sequence_count": 33,
+      "negative_peptide_count": 112,
+      "positive_peptide_count": 91,
+      "random_negative_protein_count": 67
+    },
+    {
+      "fold": 4,
+      "sequence_count": 303,
+      "residue_count": 47679,
+      "positive_residue_count": 2278,
+      "negative_residue_count": 45401,
+      "apr_region_sequence_count": 33,
+      "negative_peptide_count": 111,
+      "positive_peptide_count": 92,
+      "random_negative_protein_count": 67
+    },
+    {
+      "fold": 5,
+      "sequence_count": 303,
+      "residue_count": 48035,
+      "positive_residue_count": 2258,
+      "negative_residue_count": 45777,
+      "apr_region_sequence_count": 34,
+      "negative_peptide_count": 112,
+      "positive_peptide_count": 91,
+      "random_negative_protein_count": 66
+    },
+    {
+      "fold": 6,
+      "sequence_count": 303,
+      "residue_count": 48154,
+      "positive_residue_count": 2285,
+      "negative_residue_count": 45869,
+      "apr_region_sequence_count": 33,
+      "negative_peptide_count": 111,
+      "positive_peptide_count": 92,
+      "random_negative_protein_count": 67
+    },
+    {
+      "fold": 7,
+      "sequence_count": 303,
+      "residue_count": 47605,
+      "positive_residue_count": 2281,
+      "negative_residue_count": 45324,
+      "apr_region_sequence_count": 33,
+      "negative_peptide_count": 111,
+      "positive_peptide_count": 92,
+      "random_negative_protein_count": 67
+    },
+    {
+      "fold": 8,
+      "sequence_count": 303,
+      "residue_count": 48039,
+      "positive_residue_count": 2281,
+      "negative_residue_count": 45758,
+      "apr_region_sequence_count": 33,
+      "negative_peptide_count": 112,
+      "positive_peptide_count": 92,
+      "random_negative_protein_count": 66
+    },
+    {
+      "fold": 9,
+      "sequence_count": 303,
+      "residue_count": 48154,
+      "positive_residue_count": 2279,
+      "negative_residue_count": 45875,
+      "apr_region_sequence_count": 33,
+      "negative_peptide_count": 111,
+      "positive_peptide_count": 92,
+      "random_negative_protein_count": 67
+    }
+  ],
+  "exact_sequence_group_edges": 6
+}

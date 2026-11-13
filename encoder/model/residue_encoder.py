@@ -18,7 +18,6 @@ from encoder.model.context import ContextEncoderConfig
 
 VARIANT = "C2_CS_E2R_BOUNDARY_AWARE_CONTEXT_V3"
 CHECKPOINT_FORMAT = "hapr_boundary_aware_context_v3"
-BOUNDARY_DIFFERENCE_POLICY = "valid_adjacent_pairs_v2"
 WINDOW_SCALES = baseline.WINDOW_SCALES
 require = baseline.require
 
@@ -127,16 +126,13 @@ class ContextualAPRModel(concat.ContextualAPRModel):
 
     def _boundary_features(self, local_h: Tensor, evidence_h: Tensor, mask: Tensor):
         pair_mask = mask[:, :-1] & mask[:, 1:]
-        # A padded neighbor is not a sequence boundary. Without this mask,
-        # the last real residue receives a different residual when batched
-        # with a longer sequence, even though its own input is unchanged.
         invalid_pair = ~pair_mask.unsqueeze(-1)
+        # Padding must not create adjacent differences in the boundary residual.
         local_delta = (local_h[:, 1:] - local_h[:, :-1]).abs().masked_fill(invalid_pair, 0.0)
         evidence_delta = (evidence_h[:, 1:] - evidence_h[:, :-1]).abs().masked_fill(invalid_pair, 0.0)
         pair = torch.cat([local_h[:, :-1], local_h[:, 1:], local_delta, evidence_delta], dim=-1)
         logits = self.boundary_candidate(pair).squeeze(-1)
-        strength = torch.sigmoid(logits)
-        strength = strength * pair_mask
+        strength = torch.sigmoid(logits) * pair_mask
         # Map each edge score to both incident residues without in-place
         # slice updates; the latter would invalidate autograd's saved views.
         left_strength = torch.cat([strength, local_h.new_zeros(local_h.shape[0], 1)], dim=1)
@@ -216,12 +212,13 @@ class ContextualAPRModel(concat.ContextualAPRModel):
 def model_metadata(model):
     info = concat.model_metadata(model)
     info.update(format=CHECKPOINT_FORMAT, variant=VARIANT,
-                architecture="six-scale concat/hidden-skip -> boundary feature/gate -> boundary-aware context -> semantic HAPR + boundary residual",
+                architecture="six-scale concat/hidden-skip -> local features and boundary prediction -> boundary-aware context with input/output boundary residual -> normalized HAPR",
+                context_role="main representation stage; predicted boundaries modulate attention and residue residuals",
                 boundary_main_trunk=True,
-                 boundary_feature="abs adjacent local_h and evidence_h differences",
-                 boundary_difference_policy=BOUNDARY_DIFFERENCE_POLICY,
+                boundary_head="boundary supervision uses trunk boundary_candidate logits on valid adjacent residue pairs",
+                boundary_feature="adjacent local_h values, their absolute difference and the absolute difference of projected evidence_h",
                 boundary_gate="soft attention penalty from mean edge strength between query/key",
-                boundary_residual="residue-local residual injected into context output",
+                boundary_residual="boundary-strength-gated residue residual added to local_h before context and to context output before final normalization",
                 transfer_representation="boundary-aware HAPR before optional readouts")
     return info
 

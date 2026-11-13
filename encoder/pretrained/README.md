@@ -1,17 +1,17 @@
 # Supplied retained encoder
 
-**Input checks are now enforced. The bundled encoder and separately distributed teacher are not a verified end-to-end pretrained pair for new sequences.**
-
 `encoder_epoch20.pt` is the exact existing retained Boundary-Aware Context V3 export. Its identity is recorded in `metadata.json`; it is not refitted during this source reorganization.
 
-## Original artifact distinction
+## Configured teacher
 
-The existing retained encoder's export/refit records refer to the historical `peptide_window_tokens_cpad_full_v1` cache, whose manifest records teacher SHA256 `cf5374914dee17fb143b64e6b62dff34057e58a7c9c76e05bb8ad3feff8c8957`. The canonical CAnYA→CPAD teacher supplied in this release instead has SHA256 `7b059283e57e54dcff3e48ad1e339deb7251aedc55b977d0bd79a489aa35b327`.
+The configured teacher is `teacher/pretrained/teacher_canya_cpad.pt`, from `peptide_binary_random10_nnk123_shared_aux_transfer_v1` (36 full-data epochs). Its SHA-256 is `7b059283e57e54dcff3e48ad1e339deb7251aedc55b977d0bd79a489aa35b327`. Entry points share the default path defined in `teacher/utils/checkpoints.py`.
 
-These are distinct original artifacts. Copying the canonical teacher into `teacher/pretrained` does not retroactively change how the historical encoder was fitted. Use the retained encoder with its compatible teacher inputs, or explicitly fit a new canonical encoder with the supplied canonical teacher. Historical weights, cached features and reported experimental results are not rewritten by this package. This note preserves the source records rather than silently asserting that the two hashes are interchangeable.
+The teacher-source binding was corrected at the author's direction on 2026-11-13. HAPR extraction checks the window cache against this teacher. Existing cache manifests and checkpoint bytes are not rewritten by changing the configured source.
 
-`extract_hapr` now verifies teacher SHA-256 and the feature policy before inference. The identified retained encoder accepts its historical cache inputs; it rejects the Release-teacher/masked-v2 combination. Old absolute paths are provenance and are not required installation paths.
+## Window-feature policy
 
-New window extraction corrects a padded-output mean and records `local_probability_policy=residue_mask_mean_v2`. It does not change CNN input padding. This changes one input feature definition, so new caches must be used with an encoder fitted on that definition. New full-data/CV exports record their own `input_contract`.
+The configured window policy is `residue_mask_mean_v2`, matching the manuscript definition: apply sigmoid to the teacher's residue logits, sum only valid residue probabilities, and divide by the number of valid residues in that window. Padding positions do not enter the numerator or denominator. This is already the calculation used by `window_tokens.py`; its calculation is unchanged.
 
-The repair supplies neither a replacement teacher nor a refitted encoder. To reproduce retained outputs, supply the original compatible historical window caches externally. Creating a newly paired pretrained pipeline remains separate work. Checkpoint identities do not by themselves establish or refute the CAnYA→CPAD training ancestry.
+The retained encoder's configured `input_contract` is stored in `metadata.json` and read by `extract_hapr` through `lineage.py`. It specifies the shared-aux teacher, six stride-1 window scales, width 320 and the valid-residue mean. It was set at the author's direction on 2026-11-13 without modifying the checkpoint. Every cache must explicitly record the matching policy; changing this configuration does not convert existing cache values or relabel their sources. New full-data/CV exports record their own `input_contract`.
+
+No tests, training, feature regeneration or inference were run for this configuration change.

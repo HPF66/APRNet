@@ -1,6 +1,6 @@
 # Residue-level APR encoder
 
-Six stride-1 scales (6, 8, 10, 12, 16, 20 aa) provide frozen teacher window tokens. Within-scale residue mapping, scale fusion and boundary-aware context produce **HAPR `[L,192]`**, with pAPR and rAPR readouts `[L]`. The retained encoder has zero-valued ESM-shaped base inputs; this encoder stage is separate from the protein classifier's 650M ESM-2 inputs.
+Six stride-1 scales (6, 8, 10, 12, 16, 20 aa) provide frozen teacher window tokens of width 320. Within-scale residue mapping, scale fusion and boundary-aware context produce **HAPR `[L,192]`**, with pAPR and rAPR readouts `[L]`. pAPR is the residue APR probability; rAPR estimates representation stability under perturbed input views. The encoder's base inputs are zero placeholders `[L,480]` required by the cache schema. The protein classifier separately uses ESM-2 650M residue features `[L,1280]`.
 
 | Directory/file | Responsibility |
 | --- | --- |
@@ -27,33 +27,35 @@ python -m encoder.scratch.get_feature.zero_base \
   --apr-workbook /data/sequences.xlsx --output-dir /cache/zero_base
 ```
 
-A trained encoder must use its matching teacher and feature definition. The example above generates **masked-v2 inputs for a new encoder fit**, not for the unchanged retained encoder. Read [the enforced artifact distinction](pretrained/README.md). No refit or regeneration has been performed by this repair.
+The configured teacher is `teacher/pretrained/teacher_canya_cpad.pt` (`shared_aux_transfer_v1`). The example above generates **masked-v2 inputs**, using the mean over valid residues as described in the manuscript. The retained encoder's input configuration is recorded in `pretrained/metadata.json` and requires this same policy. Read [the teacher and window-policy settings](pretrained/README.md).
 
 ```bash
 python -m encoder.scratch.get_feature.extract_hapr \
-  --workbook /data/sequences.xlsx --window-cache /cache/compatible_window_tokens \
+  --workbook /data/sequences.xlsx --window-cache /cache/new_window_tokens \
   --esm-cache /cache/zero_base --checkpoint encoder/pretrained/encoder_epoch20.pt \
   --output-dir /external/source/embeddings/hapr/epoch20 --device cuda
 ```
 
-The extractor chunks at 512 residues with overlap64 and averages overlaps. It exports an ordered manifest and `.npz` files containing `hapr`, `pAPR`, `rAPR`. None of these generated files are included in this repository.
+The extractor chunks at 512 residues with overlap 64 and averages overlaps. It exports an ordered manifest and `.npz` files containing `hapr`, `pAPR`, `rAPR`. None of these generated files are included in this repository.
 
 ## Training
 
+Before either training command below, run the window-token and zero-base preparation commands above with `--apr-workbook encoder/data/cpad_full_v1/apr_mixed_unified_v1.xlsx`. Use `/cache/training_window_tokens` and `/cache/training_zero_base` as their respective output directories. These training caches must cover the bundled workbook's records; caches prepared for a separate inference workbook are not substitutes.
+
 ```bash
 python -m encoder.train.train --apr-workbook encoder/data/cpad_full_v1/apr_mixed_unified_v1.xlsx \
-  --fold-csv /data/encoder_splits/homology10/apr_folds.csv --peptide-window-cache /cache/window_tokens \
-  --esm-cache /cache/zero_base --output-dir /runs/encoder_cv \
+  --fold-csv encoder/data/homology10/apr_folds.csv --peptide-window-cache /cache/training_window_tokens \
+  --esm-cache /cache/training_zero_base --output-dir /runs/encoder_cv \
   --boundary-detection-weight 0.10 --cpad-weight 0.15 \
   --pos-weight-power 0.35 --supcon-weight 0 --device cuda
 ```
 
-Retained settings are in `utils/training_config.json`. Full-data fitting defaults to the released workbook and homology folds in `encoder/data`; override them with `--workbook` and `--fold-csv` if needed:
+Fold-based evaluation selects checkpoints using validation MCC. `utils/training_config.json` records the retained settings; the training CLI does not load this JSON automatically. The CLI defaults use boundary-supervision weight 0.10 and CPAD-source weight 0.15, matching the manuscript and the full-data recipe; the example keeps both values explicit. Boundary supervision acts on the trunk predictions that modulate context attention and residue residuals. The retained full-data encoder was initialized afresh and fitted for a fixed 20 epochs without validation or early stopping. Full-data fitting defaults to the released workbook and homology folds in `encoder/data`; override them with `--workbook` and `--fold-csv` if needed:
 
 ```bash
 python -m encoder.train.refit \
   --teacher-checkpoint teacher/pretrained/teacher_canya_cpad.pt \
-  --window-cache /cache/new_window_tokens --base-cache /cache/zero_base \
+  --window-cache /cache/training_window_tokens --base-cache /cache/training_zero_base \
   --output /runs/new_canonical_encoder \
   --epochs 20 --device cuda
 ```

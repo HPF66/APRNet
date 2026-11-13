@@ -8,5 +8,19 @@
     "pAPR[L]",
     "rAPR[L]"
   ],
-  "status": "Existing retained epoch20 weights copied unchanged; not refitted during code reorganization."
+  "status": "Existing retained epoch20 weights copied unchanged; not refitted during code reorganization.",
+  "teacher_checkpoint": "teacher/pretrained/teacher_canya_cpad.pt",
+  "teacher_source_cv_run": "runs/peptide_binary_random10_nnk123_shared_aux_transfer_v1",
+  "input_contract": {
+    "peptide_checkpoint_sha256": "7b059283e57e54dcff3e48ad1e339deb7251aedc55b977d0bd79a489aa35b327",
+    "local_probability_policy": "residue_mask_mean_v2",
+    "window_lengths": [6, 8, 10, 12, 16, 20],
+    "stride": 1,
+    "token_width": 320,
+    "batch_size": null
+  },
+  "input_contract_configuration": {
+    "date": "2026-11-13",
+    "basis": "Author-directed teacher selection and manuscript definition of the valid-residue probability mean; checkpoint bytes unchanged."
+  }
 }

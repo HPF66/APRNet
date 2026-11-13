@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Train Boundary-Aware Context V3 on CPAD data and fold manifests.
 
-The default uses the C2_CS_E2R loss. Optional boundary detection and regional
-SupCon can be enabled independently without changing the exported HAPR.
+The default recipe weights trunk boundary supervision by 0.10 and CPAD-source
+row losses by 0.15. Predicted boundaries modulate context attention and residual
+features. The exported HAPR is the unprojected contextual representation;
+regional SupCon is disabled by default.
 """
 
 from __future__ import annotations
@@ -47,14 +49,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ("reliability-consistency-weight", .05),
         ("window-measurement-weight", .10), ("window-hidden-reconstruction-weight", .10),
         ("view-token-noise", .02), ("view-scale-dropout", .15),
-        ("boundary-detection-weight", 0.), ("supcon-weight", 0.),
+        ("boundary-detection-weight", .10), ("supcon-weight", 0.),
         ("supcon-temperature", .10), ("supcon-cross-protein-weight", .25),
     ):
         p.add_argument("--" + flag, type=float, default=default)
     p.add_argument("--within-label-similarity-weight", "--boundary-weight", dest="boundary_weight",
                    type=float, default=.03,
                    help="Legacy same-label HAPR attraction; NOT boundary detection. Set to 0 when replacing it.")
-    p.add_argument("--cpad-weight", type=float, default=1.0,
+    p.add_argument("--cpad-weight", type=float, default=0.15,
                    help="Row-loss multiplier for CPADPEP samples; applied to the complete CPAD source.")
     p.add_argument("--supcon-space", choices=("projection", "hapr"), default="projection",
                    help="Train-only projection (default) or direct HAPR contrast for ablation")
@@ -107,7 +109,7 @@ def objective_metadata(args: argparse.Namespace) -> dict:
         if getattr(args, weight) > 0:
             descriptions.append(name)
     if args.boundary_detection_weight:
-        descriptions.append("annotation-transition boundary BCE on adjacent HAPR pairs")
+        descriptions.append("annotation-transition BCE on trunk boundary logits from adjacent local features and evidence differences")
     if args.supcon_weight:
         descriptions.append(f"regional supervised contrast in {args.supcon_space} space")
     return {

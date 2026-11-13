@@ -1,8 +1,9 @@
-"""Optional boundary supervision and regional SupCon for contextual HAPR.
+"""Boundary supervision and optional regional SupCon for contextual HAPR.
 
-Boundary targets refer to transitions in the annotation, not experimentally
-verified physical endpoints. Background retains the dataset's proxy-negative
-semantics. Neither target labels nor the training heads enter encoder inputs.
+Boundary targets are transitions in the training masks. V3 supervision uses the
+trunk boundary logits predicted from adjacent local features and evidence
+differences; these predictions also modulate context attention and residuals.
+Target masks supply training losses and are not encoder inputs.
 """
 
 from __future__ import annotations
@@ -63,8 +64,8 @@ def representation_losses(model, output, batch, args, generator) -> tuple[Tensor
     zero = output["residue_embedding"].sum() * 0.
     boundary, contrast = zero, zero
     stats, boundary_stats, contrast_stats = {}, {}, {}
-    # Construct readouts only when an objective actually uses them. This makes
-    # the zero-weight configuration identical to the original context baseline.
+    # V3 trunk boundary logits take precedence over the inherited auxiliary
+    # readout. The inherited readouts also provide optional SupCon projections.
     if args.boundary_detection_weight > 0 or (args.supcon_weight > 0 and args.supcon_space == "projection"):
         auxiliary = model.representation_readouts(output["residue_embedding"], batch["mask"])
         if "boundary_logits" in output:

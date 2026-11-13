@@ -1,6 +1,6 @@
 {
   "apr_workbook": "encoder/data/cpad_full_v1/apr_mixed_unified_v1.xlsx",
-  "fold_csv": "external_data/encoder_splits/homology10/apr_folds.csv",
+  "fold_csv": "encoder/data/homology10/apr_folds.csv",
   "peptide_window_cache": "external_cache/compatible_window_tokens",
   "esm_cache": "external_cache/zero_base",
   "output_dir": "encoder/result/full_data",

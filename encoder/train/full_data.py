@@ -58,7 +58,7 @@ def restore_rng(state, loader, supcon_generator):
     supcon_generator.set_state(state['supcon'])
 
 def build_args(root: Path, output: Path, epochs: int, device: str, *, window_cache: Path, base_cache: Path, workbook: Path | None = None, folds: Path | None = None) -> argparse.Namespace:
-    return train_v3.parse_args(['--apr-workbook', str(workbook or root / 'data/cpad_full_v1/apr_mixed_unified_v1.xlsx'), '--fold-csv', str(folds or root / 'external_data/encoder_splits/homology10/apr_folds.csv'), '--peptide-window-cache', str(window_cache), '--esm-cache', str(base_cache), '--output-dir', str(output), '--epochs', str(epochs), '--batch-size', '4', '--hidden-size', '192', '--boundary-detection-weight', '0.10', '--cpad-weight', '0.15', '--pos-weight-power', '0.35', '--supcon-weight', '0', '--device', device])
+    return train_v3.parse_args(['--apr-workbook', str(workbook or root / 'data/cpad_full_v1/apr_mixed_unified_v1.xlsx'), '--fold-csv', str(folds or root / 'data/homology10/apr_folds.csv'), '--peptide-window-cache', str(window_cache), '--esm-cache', str(base_cache), '--output-dir', str(output), '--epochs', str(epochs), '--batch-size', '4', '--hidden-size', '192', '--boundary-detection-weight', '0.10', '--cpad-weight', '0.15', '--pos-weight-power', '0.35', '--supcon-weight', '0', '--device', device])
 
 def load_full_data(args):
     tuples = baseline.peptide_adapter.read_proteins(args.apr_workbook, args.fold_csv)

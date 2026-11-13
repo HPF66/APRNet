@@ -19,12 +19,13 @@ from openpyxl import load_workbook
 
 from encoder.utils.window_policy import enumerate_windows
 from encoder.utils.lineage import MASKED_LOCAL_MEAN
+from teacher.utils.checkpoints import DEFAULT_TEACHER_CHECKPOINT
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--backbone", type=Path, required=True)
-    parser.add_argument("--peptide-checkpoint", type=Path, default=Path(__file__).resolve().parents[3] / "teacher/pretrained/teacher_canya_cpad.pt")
+    parser.add_argument("--peptide-checkpoint", type=Path, default=DEFAULT_TEACHER_CHECKPOINT)
     parser.add_argument("--apr-workbook", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--device", default="cuda")

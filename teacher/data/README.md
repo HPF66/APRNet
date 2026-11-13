@@ -1,19 +1,9 @@
 # Peptide teacher input data
 
-The source workbooks and fixed fold outputs are intentionally not bundled in
-the code repository. Supply the original CPAD workbook and CAnYA table from a
-separate data location. `make_canya_split.py` creates the CAnYA random 90/10
-table; `make_cpad_folds.py` creates the CPAD peptide K-fold manifest.
+- `aggregating_peptides_model_database.xlsx`: the unchanged CPAD-derived merged input workbook; 2,031 rows in `peptides`, plus `mapped_regions` and `protein_sequences`.
+- `canya_random90_10.tsv`: the actual CAnYA NNK1/2/3 random90/10 input used by the retained recipe (111,692 source rows before the trainer skips six empty sequences).
+- `canya_original_sd2.tsv`: the original extracted SD2 table before random re-partitioning. Training uses `canya_random90_10.tsv`.
+- `splits/peptide_folds.csv`, `splits/fold_manifest.json`: unchanged row-order fold definitions. The manifest contains the original multi-task project metadata; the teacher runner selects the peptide task.
+- `splits/aggregating_peptides/split_01.xlsx` through `split_10.xlsx`: the original ten peptide split workbooks.
 
-```bash
-python -m teacher.my_loader.make_canya_split \
-  --input /data/canya/adt5111_SD2_official_split.tsv \
-  --output /data/teacher_splits/canya_random90_10.tsv --fraction 0.1 --seed 2026
-python -m teacher.my_loader.make_cpad_folds \
-  --workbook /data/cpad/aggregating_peptides_model_database.xlsx \
-  --output-root /data/teacher_splits/cpad_random10 --folds 10 --seed 2026
-```
-
-The generated manifest is passed explicitly to the trainer. Fold files,
-intermediate TSVs, split workbooks and extraction caches should remain outside
-the checkout.
+Sample IDs, labels, row order and original workbook sheets are preserved. The source data and original splits are included here. No learned peptide/residue embeddings or extraction caches are included.

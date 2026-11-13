@@ -1,0 +1,26 @@
+{
+  "input": "/home/qfchen/amyloid/canya_dataset/official_split/adt5111_SD2_official_split.tsv",
+  "input_sha256": "61a4e1b36953adb30d2dd68f564cbf285f1ac9bf01dd9c0ab95a09fef2712d0f",
+  "output": "/home/qfchen/amyloid/canya_dataset/official_split/adt5111_NNK123_random90_10_seed2026.tsv",
+  "output_sha256": "5775702ec88edab93b06a348e0d7b2cf3677e18b0c84fd7a155102c7c59df748",
+  "seed": 2026,
+  "test_fraction_target": 0.1,
+  "row_n": 111692,
+  "by_dataset_split_label": {
+    "NNK1|test|0": 2886,
+    "NNK1|test|1": 652,
+    "NNK1|train|0": 25978,
+    "NNK1|train|1": 5865,
+    "NNK2|test|0": 2621,
+    "NNK2|test|1": 1129,
+    "NNK2|train|0": 23590,
+    "NNK2|train|1": 10157,
+    "NNK3|test|0": 3352,
+    "NNK3|test|1": 529,
+    "NNK3|train|0": 30168,
+    "NNK3|train|1": 4765
+  },
+  "train_test_exact_sequence_overlap_n": 208,
+  "train_test_overlap_label_conflict_n": 28,
+  "empty_sequence_n": 6
+}

@@ -15,8 +15,8 @@ import torch
 from openpyxl import Workbook
 
 from encoder.my_loader.window_data import Protein, load_store
-from encoder.utils.lineage import (MASKED_LOCAL_MEAN, LEGACY_LOCAL_MEAN,
-    CANONICAL_PEPTIDE_SHA256, RETAINED_TEACHER_SHA256, window_contract,
+from encoder.utils.lineage import (MASKED_LOCAL_MEAN,
+    CANONICAL_PEPTIDE_SHA256, window_contract,
     verify_window_manifest, verify_encoder_inputs)
 from protein.utils.evaluation import evaluation_condition
 from protein.utils.structure_paths import resolve_structure
@@ -146,13 +146,20 @@ class ReleaseRegressions(unittest.TestCase):
         put_json(self.root / 'windows/manifest.json', self.contract())
         put_json(self.root / 'base/manifest.json', {'encoder_signal': 'none', 'hidden_width': 480})
         checkpoint = ROOT / 'encoder/pretrained/encoder_epoch20.pt'
-        with self.assertRaisesRegex(ValueError, 'Retained encoder requires'):
+        result = verify_encoder_inputs(checkpoint, {}, self.root / 'windows', self.root / 'base')
+        self.assertEqual(result['peptide_checkpoint_sha256'], CANONICAL_PEPTIDE_SHA256)
+        self.assertEqual(result['local_probability_policy'], MASKED_LOCAL_MEAN)
+        put_json(self.root / 'windows/manifest.json', self.contract(policy='padded_width_mean_v1'))
+        with self.assertRaisesRegex(ValueError, 'Missing/unsupported local_probability_policy'):
             verify_encoder_inputs(checkpoint, {}, self.root / 'windows', self.root / 'base')
-        manifest = self.contract(RETAINED_TEACHER_SHA256, LEGACY_LOCAL_MEAN)
+        put_json(self.root / 'windows/manifest.json', self.contract('0' * 64))
+        with self.assertRaisesRegex(ValueError, 'teacher_canya_cpad'):
+            verify_encoder_inputs(checkpoint, {}, self.root / 'windows', self.root / 'base')
+        manifest = self.contract()
         del manifest['local_probability_policy']
         put_json(self.root / 'windows/manifest.json', manifest)
-        result = verify_encoder_inputs(checkpoint, {}, self.root / 'windows', self.root / 'base')
-        self.assertEqual(result['peptide_checkpoint_sha256'], RETAINED_TEACHER_SHA256)
+        with self.assertRaisesRegex(ValueError, 'Missing/unsupported local_probability_policy'):
+            verify_encoder_inputs(checkpoint, {}, self.root / 'windows', self.root / 'base')
         # New models have a self-contained input contract.
         checkpoint = self.root / 'new.pt'
         checkpoint.write_bytes(b'new encoder')
@@ -195,8 +202,6 @@ class ReleaseRegressions(unittest.TestCase):
 
     def test_reports_require_same_condition_and_complete_folds(self):
         protocol = ROOT / 'protein/data/cohorts/primary/cold-family'
-        if not protocol.exists():
-            self.skipTest('external protein partitions are not bundled; provide them to run this integration check')
         condition = evaluation_condition(protocol / 'cohort_membership.tsv', protocol / 'outer_fold0', 0)
         folders = []
         for fold in condition['expected_folds']:
